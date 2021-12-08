@@ -71,8 +71,22 @@ rankings <- pitch_pred_2021 %>%
          strikes_pm_per_game = strikes_plus_minus / n_pitch * 70, # 70 pitches per game
          strikes_pm_per_100game = strikes_plus_minus / n_pitch * 7000) %>%
   arrange(desc(strikes_pm_per_pitch)) %>%
-  filter(games >= 50) %>% # filter to only catchers with >= 50 games at catcher
-  left_join(playerid_mapping %>% select(MLBID, PLAYERNAME), by = c("fielder_2" = "MLBID")) %>%
+  filter(games >= 25) %>% # filter to only catchers with >= 50 games at catcher
+  left_join(playerid_mapping %>% select(MLBID, PLAYERNAME, TEAM), by = c("fielder_2" = "MLBID")) %>%
+  mutate(PLAYERNAME = as.character(PLAYERNAME),
+         TEAM = as.character(TEAM)) %>%
   rename(mlb_id = fielder_2,
-         player_name = PLAYERNAME) %>%
-  select(player_name, mlb_id, games, n_pitch, strikes_plus_minus, strikes_pm_per_pitch, strikes_pm_per_game, strikes_pm_per_100game)
+         player_name = PLAYERNAME,
+         team = TEAM) %>%
+  select(mlb_id, player_name, team, games, n_pitch, strikes_plus_minus, strikes_pm_per_pitch, strikes_pm_per_game, strikes_pm_per_100game) %>%
+  mutate(player_name = case_when(mlb_id == 666163 ~ "Ben Rortvedt",
+                                 TRUE ~ player_name),
+         team = case_when(mlb_id == 666163 ~ "MIN",
+                          TRUE ~ team)) # Rortvedt not mapped in mapping csv
+
+# write.csv(rankings, "Scoring//2021_catcher_receiving_rankings.csv", row.names = FALSE)
+
+team_rankings <- rankings %>%
+  group_by(team) %>%
+  summarise_at(vars(strikes_pm_per_pitch:strikes_pm_per_100game), 
+               funs(weighted.mean(., w = n_pitch, na.rm = TRUE)))
