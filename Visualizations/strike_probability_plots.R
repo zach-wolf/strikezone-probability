@@ -86,6 +86,10 @@ lvr_plot <- plot_zone(data = pitch_pred, pitcher_hand = "L", batter_stance = "R"
 lvl_plot <- plot_zone(data = pitch_pred, pitcher_hand = "L", batter_stance = "L")
 
 # grid of platoon strikezones
-cowplot::plot_grid(rvr_plot, rvl_plot,
-                   lvr_plot, lvl_plot,
-                   nrow = 2)
+zone_grid <- cowplot::plot_grid(rvr_plot, rvl_plot,
+                                lvr_plot, lvl_plot,
+                                nrow = 2)
+ggsave(plot = zone_grid,
+       filename = "Visualizations/platoon_grid.png",
+       width = 5,
+       height = 7)

@@ -16,6 +16,8 @@ tbl(statcast_db, 'statcast') %>%
   count() %>%
   collect()
 
+head(pitch_data)
+
 all_data <- tbl(statcast_db, 'statcast') %>%
   filter(game_date >= '2017-01-01', # first year of Trackman
          # game_date < '2021-01-01',
@@ -105,15 +107,14 @@ pitch_train <- training(pitch_split)
 pitch_test <- testing(pitch_split)
 
 pitch_recipe <- recipe(IsStrike ~ ., data = pitch_train) %>%
-  step_dummy(all_of(factor_vars), -IsStrike, one_hot = FALSE) %>%
-  prep()
+  step_dummy(all_of(factor_vars), -IsStrike, one_hot = FALSE)
 
 # xgboost model without tuning
 xgb_mod <- boost_tree(
   trees = 500,
   mode = "classification"
 ) %>% 
-  set_engine("xgboost", nthread = 2)
+  set_engine("xgboost", nthread = 8)
 
 xgb_wf <- workflow() %>%
   add_model(xgb_mod) %>%
@@ -158,7 +159,7 @@ xgb_mod <-
     loss_reduction = tune(),                     ## first three: model complexity
     learn_rate = tune()                          ## step size
   ) %>% 
-  set_engine("xgboost", nthread = 3) %>% 
+  set_engine("xgboost", nthread = 8) %>% 
   set_mode("classification")
 
 xgb_wf <- 
@@ -198,16 +199,45 @@ xgb_tuned <-
   )
 Sys.time() - start # 9.5 hours
 
-xgb_tuned %>% show_best("roc_auc", n = 10)
+xgb_tuned %>% show_best(metric = "roc_auc", n = 10)
 
-best_xgb <- xgb_tuned %>% select_best("roc_auc")
+best_xgb <- xgb_tuned %>% select_best(metric = "roc_auc")
 
 final_xgb <- finalize_workflow(xgb_wf, best_xgb)
 xgb_fit <- final_xgb %>% fit(pitch_train)
 
-xgb_fit %>%
-  pull_workflow_fit() %>%
+vip_plot <- xgb_fit %>%
+  extract_fit_parsnip() %>%
   vip::vip(geom = "point", num_features = 20)
+
+ggsave(plot = vip_plot,
+       filename = "Visualizations/vip_plot.png",
+       width = 7,
+       height = 5)
+
+xgb_pred <-
+  predict(xgb_fit, pitch_test, type = "prob") %>%
+  bind_cols(pitch_test)
+
+xgb_pred %>%
+  roc_auc(truth = IsStrike, .pred_0) # 0.983
+
+pred_heatmap <- xgb_pred %>%
+  # filter(.pred_1 > 0.45 & .pred_1 < 0.55) %>%
+  rename(strike_prob = .pred_1) %>%
+  ggplot(aes(x = plate_x, y = plate_z, color = strike_prob)) +
+  geom_raster(aes(fill = strike_prob), interpolate = TRUE) +
+  scale_fill_gradientn(colours=c("#0000FFFF","#FFFFFFFF","#FF0000FF")) +
+  geom_segment(x = 0.75, y = mean(xgb_pred$sz_bot), xend = 0.75, yend = mean(xgb_pred$sz_top), color = "black") +
+  geom_segment(x = -0.75, y = mean(xgb_pred$sz_bot), xend = -0.75, yend = mean(xgb_pred$sz_top), color = "black") +
+  geom_segment(x = 0.75, y = mean(xgb_pred$sz_bot), xend = -0.75, yend = mean(xgb_pred$sz_bot), color = "black") +
+  geom_segment(x = 0.75, y = mean(xgb_pred$sz_top), xend = -0.75, yend = mean(xgb_pred$sz_top), color = "black") +
+  coord_fixed()
+
+ggsave(plot = pred_heatmap,
+       filename = "Visualizations/prediction_heatmap.png",
+       width = 5,
+       height = 5)
 
 last_fit(
   final_xgb,
@@ -216,9 +246,9 @@ last_fit(
 ) %>%
   collect_metrics()
 
-# saveRDS(xgb_fit, "strike_prob_xgb_tuned.Rds")
+# ppv:      0.950
+# npv:      0.898
+# AUC:      0.983
+# logloss:  0.159
 
-
-
-
-
+saveRDS(xgb_fit, "Modeling/strike_prob_xgb_tuned.Rds")
