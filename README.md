@@ -38,10 +38,22 @@ Catcher receiving scores calculated by comparing:
 - Aggregate performance across all borderline pitches caught
 - Adjustment for season (100-game) scoring
 
+## Model Performance
+
+| Metric | Value | Interpretation |
+|--------|-------|---------------|
+| ROC AUC | 0.983 | Exceptional discrimination ability |
+| Log Loss | 0.159 | Highly calibrated probabilities |
+| Precision | 95.0% | Low false positive rate |
+
+![Strike Zone Heatmap](Visualizations/prediction_heatmap.png)
+
+*Predicted strike zone boundaries show clear differences from rulebook definition*
+
 ## Key Findings
 
 - The actual MLB strike zone differs substantially from the rulebook definition
-- Top-tier framing catchers can influence 3-5% more borderline calls in their favor
+- Top-tier framing catchers can greatly influence more borderline calls in their favor
 - Strike zone consistency varies significantly by pitcher and batter handedness
 
 ## Technologies Used
