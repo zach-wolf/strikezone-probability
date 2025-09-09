@@ -24,7 +24,7 @@ Understanding catcher framing has become crucial in modern baseball analytics. E
 ### Data Collection
 - **Source**: MLB Statcast data via `baseballr` R package
 - **Scope**: All called pitches (balls and strikes) with complete tracking data
-- **Features**: Pitch location (x, y, z coordinates), velocity, spin rate, catcher identity, umpire, count, batter handedness
+- **Features**: Pitch location (x, y, z coordinates), velocity, spin rate, release point, extension, count, batter handedness, pitcher handedness
 
 ### Model Development
 - **Algorithm**: xgboost
