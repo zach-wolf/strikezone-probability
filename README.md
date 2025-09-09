@@ -7,7 +7,7 @@
 This project builds a predictive model to estimate the probability of any pitch being called a strike, using detailed pitch tracking data from MLB's Statcast system. By modeling umpire behavior rather than the rulebook strike zone, we can identify the *actual* strike zone and quantify how effectively catchers "frame" borderline pitches.
 
 **Key Results:**
-- **Model Performance**: 0.982 AUC on called strike prediction
+- **Model Performance**: 0.983 AUC on called strike prediction
 - **Practical Application**: Comprehensive catcher receiving scores for all 2021 MLB catchers
 - **Insights**: Visualized strike zone boundaries that differ significantly from the official rulebook definition
 
@@ -30,7 +30,7 @@ Understanding catcher framing has become crucial in modern baseball analytics. E
 - **Algorithm**: xgboost
 - **Target Variable**: Called strike (1) vs. called ball (0)
 - **Validation**: train/test split, cross-validation
-- **Performance**: 0.982 AUC demonstrates excellent predictive capability
+- **Performance**: 0.983 AUC and 0.159 logloss demonstrates excellent predictive capability
 
 ### Catcher Scoring
 Catcher receiving scores calculated by comparing:
@@ -79,4 +79,4 @@ install.packages(c("baseballr", "tidyverse", "tidymodels", "DBI", "RPostgreSQL",
 
 ## Results Preview
 
-The final model achieves exceptional predictive performance (AUC = 0.982) and reveals nuanced patterns in umpire decision-making. Catcher receiving scores for 2021 are available in `Scoring/2021_catcher_receiving_scores.csv`.
+The final model achieves exceptional predictive performance (AUC = 0.983) and reveals nuanced patterns in umpire decision-making. Catcher receiving scores for 2021 are available in `Scoring/2021_catcher_receiving_scores.csv`.
