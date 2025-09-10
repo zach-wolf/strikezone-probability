@@ -68,7 +68,8 @@ Catcher receiving scores calculated by comparing:
 
 ### Prerequisites
 ```r
-install.packages(c("baseballr", "tidyverse", "tidymodels", "DBI", "RPostgreSQL", "RPostgres", "data.table", "ggplot2", "xgboost"))
+devtools::install_github("BillPetti/baseballr")
+install.packages(c("tidyverse", "tidymodels", "DBI", "RPostgreSQL", "RPostgres", "data.table", "ggplot2", "xgboost"))
 ```
 
 ### Usage
